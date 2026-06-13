@@ -9,6 +9,15 @@ const app = express();
 app.use(cors({ origin: env.WEB_ORIGIN === "*" ? true : env.WEB_ORIGIN.split(",") }));
 app.use(express.json());
 
+// Root: this is the API, not the web app. Point humans who land here at the
+// right place instead of returning a bare "Cannot GET /".
+app.get("/", (_req, res) =>
+  res.json({
+    service: "whnow-learn-api",
+    message: "This is the API. The web app is served by the whnow-learn-web service.",
+    endpoints: ["/health", "/auth/login", "/api/*"],
+  }),
+);
 app.get("/health", (_req, res) => res.json({ ok: true, service: "whnow-learn-api" }));
 app.use("/auth", authRouter);
 app.use("/api", apiRouter);
