@@ -43,15 +43,19 @@ async function ensureUser(
   roleId: string,
   password: string,
 ) {
+  // Re-apply the password on every run (not just on create) so changing
+  // SEED_SUPERADMIN_PASSWORD and redeploying actually resets these seeded
+  // accounts. Only the four seeded demo accounts are touched.
+  const password_hash = bcrypt.hashSync(password, 10);
   const user = await db.users.upsert({
     where: { tenant_id_email: { tenant_id: tenantId, email } },
-    update: { full_name: fullName, status: "active" },
+    update: { full_name: fullName, status: "active", password_hash },
     create: {
       tenant_id: tenantId,
       email,
       full_name: fullName,
       status: "active",
-      password_hash: bcrypt.hashSync(password, 10),
+      password_hash,
     },
   });
   const existing = await db.user_roles.findFirst({ where: { user_id: user.id, role_id: roleId } });
