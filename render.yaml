@@ -4,7 +4,7 @@
 
 databases:
   - name: whnow-learn-db
-    plan: free                 # upgrade for production (free dbs expire)
+    plan: basic-256mb          # smallest paid Postgres plan (~$6/mo); avoids the one-free-db-per-account limit and free-db 90-day expiry
     databaseName: whnow_learn
     user: whnow
 
