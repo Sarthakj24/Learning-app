@@ -7,8 +7,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "start:migrate": "prisma migrate deploy && node dist/seed.js && node dist/server.js",
+    "start:migrate": "npm run migrate:safe && node dist/seed.js && node dist/server.js",
     "migrate:deploy": "prisma migrate deploy",
+    "migrate:safe": "prisma migrate deploy || (prisma migrate resolve --rolled-back 0001_init && prisma migrate deploy)",
     "seed": "tsx src/seed.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

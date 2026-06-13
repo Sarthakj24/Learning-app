@@ -667,9 +667,16 @@ CREATE POLICY plans_write ON plans FOR ALL
 -- =====================================================================
 -- SEED: reserved platform tenant (owns the GLOBAL master library)
 -- =====================================================================
+-- tenants now has FORCE ROW LEVEL SECURITY and an INSERT policy gated on
+-- app.is_super_admin(). The migration role is the table owner but a
+-- NON-superuser on Render, so FORCE RLS applies to it too — without the
+-- super-admin GUC this INSERT is rejected and the whole migration aborts.
+-- Grant super-admin context for this seed insert, then reset it.
+SELECT set_config('app.is_super_admin', 'true', false);
 INSERT INTO tenants (id, name, slug, status, is_platform)
 VALUES ('00000000-0000-0000-0000-000000000000','WH Now Platform','platform','active',true)
 ON CONFLICT (id) DO NOTHING;
+SELECT set_config('app.is_super_admin', 'false', false);
 
 
 -- =====================================================================
