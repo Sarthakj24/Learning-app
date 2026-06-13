@@ -1,6 +1,7 @@
 # Render Blueprint for WH Now Learn
 # Deploy: push this repo to GitHub, then in Render: New + > Blueprint > pick the repo.
-# Render reads this file and provisions the database and both services.
+# Render reads this file and provisions the database and a single web service
+# (the API also serves the built React app from the same origin).
 
 databases:
   - name: whnow-learn-db
@@ -9,13 +10,19 @@ databases:
     user: whnow
 
 services:
-  # ---------------- API (Node/Express + Prisma) ----------------
+  # ---------------- API + web UI (single service, single URL) ----------------
+  # The Node/Express API also serves the compiled Vite app, so the whole app
+  # lives at one Render URL. /health, /auth/* and /api/* are the API; every
+  # other path serves the React SPA.
   - type: web
     name: whnow-learn-api
     runtime: node
     plan: free
     rootDir: apps/api
-    buildCommand: npm install && npm run build
+    # Install API deps, install web deps (apps/api has its own lockfile so a
+    # plain `npm install` here won't pull the web workspace), then build the
+    # API and the web app and bundle the web output into dist/public.
+    buildCommand: npm install && npm --prefix ../web install && npm run build:standalone
     # migrate deploy applies the SQL migration (tables + RLS policies),
     # then seed runs (idempotent), then the server starts.
     startCommand: npm run start:migrate
@@ -29,26 +36,12 @@ services:
         generateValue: true
       - key: SEED_SUPERADMIN_PASSWORD
         sync: false            # set this yourself in the Render dashboard
+      - key: VITE_API_URL
+        # Empty -> the web app calls the API on its own origin (relative paths).
+        # Baked in at build time by Vite.
+        value: ""
       - key: WEB_ORIGIN
-        # Tighten to your web URL after first deploy; "*" reflects all origins.
+        # Same-origin now, so CORS isn't strictly needed; "*" is a safe default.
         value: "*"
       - key: NODE_VERSION
         value: "20"
-
-  # ---------------- Web (React/Vite static site) ----------------
-  - type: web
-    name: whnow-learn-web
-    runtime: static
-    rootDir: apps/web
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: whnow-learn-api
-          property: host       # scheme-less host; the client prepends https://
-    routes:
-      - type: rewrite          # SPA fallback so client routes resolve
-        source: /*
-        destination: /index.html

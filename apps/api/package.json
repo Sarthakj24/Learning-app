@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc -p tsconfig.json",
+    "build:standalone": "npm run build && npm --prefix ../web run build && rm -rf dist/public && cp -r ../web/dist dist/public",
     "start": "node dist/server.js",
     "start:migrate": "npm run migrate:safe && node dist/seed.js && node dist/server.js",
     "migrate:deploy": "prisma migrate deploy",

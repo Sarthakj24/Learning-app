@@ -1,7 +1,18 @@
-const raw = import.meta.env.VITE_API_URL ?? "http://localhost:10000";
-// Render's fromService `host` is scheme-less (e.g. whnow-learn-api.onrender.com);
-// prepend https:// when no scheme is present.
-export const API_BASE = /^https?:\/\//.test(raw) ? raw : `https://${raw}`;
+// API_BASE resolution:
+//  - VITE_API_URL unset        -> local dev default (separate Vite + API ports)
+//  - VITE_API_URL === ""        -> same-origin: the API serves this web build,
+//                                  so use relative paths ("/auth/login" etc.)
+//  - scheme-less host           -> prepend https:// (Render fromService `host`)
+//  - full URL                   -> use as-is
+const raw: unknown = import.meta.env.VITE_API_URL;
+export const API_BASE =
+  raw === undefined
+    ? "http://localhost:10000"
+    : raw === ""
+      ? ""
+      : /^https?:\/\//.test(raw as string)
+        ? (raw as string)
+        : `https://${raw}`;
 
 const TOKEN_KEY = "whnow_token";
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
