@@ -1,0 +1,12 @@
+-- OPTIONAL hardening. Render's default database user is NOT a superuser and the
+-- schema uses FORCE ROW LEVEL SECURITY, so RLS is already enforced on the default
+-- connection. For defence in depth you may run the app under a dedicated role:
+--
+--   CREATE ROLE app_user LOGIN PASSWORD 'set-a-strong-password' NOSUPERUSER NOBYPASSRLS;
+--   GRANT USAGE ON SCHEMA app, public TO app_user;
+--   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
+--   ALTER DEFAULT PRIVILEGES IN SCHEMA public
+--     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+--
+-- Then point DATABASE_URL at app_user instead of the owner role.
+-- NEVER connect the app with a superuser — superusers bypass RLS entirely.
