@@ -1,0 +1,143 @@
+{
+  "$schema": "wh-now-learn/rbac.config",
+  "version": "1.0",
+  "description": "Permission catalog and base-role mappings for WH Now Learn. Loaded at seed time: every 'key' is inserted into the permissions table; each base role's permission list is attached to the corresponding seeded role template (tenant_id = platform tenant). Tenants clone these templates and may add/remove individual permissions per role afterwards.",
+
+  "scopeModel": {
+    "note": "Some permissions are scope-limited at runtime even when granted. The 'scopes' field on a role declares the breadth of its data access; the application enforces it in addition to RLS.",
+    "levels": {
+      "platform": "all tenants (super admin only)",
+      "tenant": "everything within own tenant",
+      "team": "only users/locations/departments the holder manages (via user_roles.location_id / department_id)",
+      "self": "only the holder's own records"
+    }
+  },
+
+  "permissions": [
+    { "key": "tenant.manage",        "domain": "tenancy",     "description": "Create, suspend, configure tenants/clients" },
+    { "key": "tenant.branding",      "domain": "tenancy",     "description": "Edit logo, theme, languages, certificate look" },
+    { "key": "billing.view",         "domain": "billing",     "description": "View plan, seats, invoices" },
+    { "key": "billing.manage",       "domain": "billing",     "description": "Change plan / seats (platform)" },
+
+    { "key": "user.create",          "domain": "identity",    "description": "Invite / create users" },
+    { "key": "user.update",          "domain": "identity",    "description": "Edit user profiles" },
+    { "key": "user.disable",         "domain": "identity",    "description": "Enable / disable user access" },
+    { "key": "user.reset_password",  "domain": "identity",    "description": "Reset a user's password" },
+    { "key": "user.view",            "domain": "identity",    "description": "View user list / profiles" },
+
+    { "key": "role.manage",          "domain": "rbac",        "description": "Create roles and edit role permissions" },
+    { "key": "role.assign",          "domain": "rbac",        "description": "Assign roles to users" },
+
+    { "key": "location.manage",      "domain": "org",         "description": "Create / edit locations & departments" },
+
+    { "key": "category.manage",      "domain": "taxonomy",    "description": "Manage categories / sub-categories" },
+    { "key": "tag.manage",           "domain": "taxonomy",    "description": "Manage tags" },
+    { "key": "skill.manage",         "domain": "skills",      "description": "Define skills, levels, role requirements" },
+    { "key": "skill.view",           "domain": "skills",      "description": "View skills & competency data" },
+
+    { "key": "content.author",       "domain": "content",     "description": "Create / edit draft modules, lessons, courses" },
+    { "key": "content.review",       "domain": "content",     "description": "Review submitted content" },
+    { "key": "content.approve",      "domain": "content",     "description": "Approve content for publishing" },
+    { "key": "content.publish",      "domain": "content",     "description": "Publish content (creates a version)" },
+    { "key": "content.version",      "domain": "content",     "description": "Create new versions / flag material change" },
+    { "key": "content.fork_global",  "domain": "content",     "description": "Fork a GLOBAL master module into the tenant" },
+    { "key": "content.archive",      "domain": "content",     "description": "Archive content" },
+    { "key": "content.view",         "domain": "content",     "description": "View / consume content" },
+
+    { "key": "assessment.author",    "domain": "assessment",  "description": "Create / edit questions & assessments" },
+    { "key": "assessment.take",      "domain": "assessment",  "description": "Take assessments" },
+
+    { "key": "assignment.create",    "domain": "assignment",  "description": "Manually assign modules / courses" },
+    { "key": "assignment.rule",      "domain": "assignment",  "description": "Create auto-assignment rules" },
+
+    { "key": "signoff.perform",      "domain": "practical",   "description": "Perform practical sign-off on a learner" },
+    { "key": "signoff.checklist",    "domain": "practical",   "description": "Create / edit practical checklists" },
+
+    { "key": "cert.view_own",        "domain": "certificate", "description": "View own certificates" },
+    { "key": "cert.view_all",        "domain": "certificate", "description": "View certificates across scope" },
+    { "key": "cert.revoke",          "domain": "certificate", "description": "Revoke a certificate" },
+
+    { "key": "analytics.self",       "domain": "analytics",   "description": "View own dashboard / progress" },
+    { "key": "analytics.team",       "domain": "analytics",   "description": "View team progress & skill gaps" },
+    { "key": "analytics.tenant",     "domain": "analytics",   "description": "View tenant-wide compliance dashboards" },
+    { "key": "analytics.platform",   "domain": "analytics",   "description": "View cross-tenant analytics" },
+    { "key": "report.export",        "domain": "analytics",   "description": "Export audit / compliance reports" },
+
+    { "key": "audit.view",           "domain": "audit",       "description": "View audit logs" },
+    { "key": "impersonate",          "domain": "audit",       "description": "Impersonate a tenant for support (logged)" },
+
+    { "key": "ai.generate",          "domain": "ai",          "description": "Use AI authoring (question-gen, translate) [feature-flagged]" }
+  ],
+
+  "baseRoles": {
+    "super_admin": {
+      "label": "WH Now Super Admin",
+      "level": 1,
+      "scope": "platform",
+      "permissions": ["*"],
+      "note": "Wildcard grants every permission, including future ones. Also the only role with 'impersonate' and platform analytics."
+    },
+
+    "client_admin": {
+      "label": "Client Admin",
+      "level": 2,
+      "scope": "tenant",
+      "permissions": [
+        "tenant.branding", "billing.view",
+        "user.create", "user.update", "user.disable", "user.reset_password", "user.view",
+        "role.manage", "role.assign",
+        "location.manage",
+        "category.manage", "tag.manage", "skill.manage", "skill.view",
+        "content.author", "content.review", "content.approve", "content.publish",
+        "content.version", "content.fork_global", "content.archive", "content.view",
+        "assessment.author", "assessment.take",
+        "assignment.create", "assignment.rule",
+        "signoff.perform", "signoff.checklist",
+        "cert.view_own", "cert.view_all", "cert.revoke",
+        "analytics.self", "analytics.team", "analytics.tenant", "report.export",
+        "audit.view",
+        "ai.generate"
+      ]
+    },
+
+    "manager": {
+      "label": "Client / Warehouse Manager",
+      "level": 3,
+      "scope": "team",
+      "scopeNote": "All team/analytics/assignment/signoff permissions are limited to the locations & departments named in the holder's user_roles rows.",
+      "permissions": [
+        "user.view",
+        "skill.view",
+        "content.author", "content.view",
+        "assessment.author", "assessment.take",
+        "assignment.create",
+        "signoff.perform", "signoff.checklist",
+        "cert.view_own", "cert.view_all",
+        "analytics.self", "analytics.team", "report.export"
+      ]
+    },
+
+    "user": {
+      "label": "User / Learner",
+      "level": 4,
+      "scope": "self",
+      "permissions": [
+        "content.view",
+        "assessment.take",
+        "cert.view_own",
+        "analytics.self"
+      ],
+      "optionalGrants": {
+        "note": "A tenant may switch these on per user to let floor staff contribute content; published only after approval.",
+        "permissions": ["content.author"]
+      }
+    }
+  },
+
+  "enforcement": {
+    "layer1_rls": "PostgreSQL Row-Level Security guarantees tenant isolation regardless of application bugs (see schema.sql).",
+    "layer2_rbac": "Application middleware checks the user's effective permission set (base role permissions +/- per-role overrides) before each action.",
+    "layer3_scope": "For scope='team' roles, the application further filters target users/locations to those in the manager's user_roles scope.",
+    "wildcardRule": "'*' in a permission list means all permissions; never grant '*' to anything below super_admin."
+  }
+}

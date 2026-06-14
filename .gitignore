@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+apps/api/dist/
+apps/web/dist/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Root workspace lockfile is a local byproduct; Render builds use the
+# committed per-app lockfiles (apps/api, apps/web).
+/package-lock.json
